@@ -1,0 +1,32 @@
+{
+  "name": "cc-dev-container",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "claude-code",
+
+  "workspaceFolder": "/workspaces/cc-dev-container",
+
+  // compose の user: ではなく remoteUser でユーザー切替を管理
+  // 省略した場合、VS CodeはDockerfileの USER（指定がなければ root）でコンテナに接続します。
+  // システム構築が終わった後、VS Codeがコンテナに入ってファイルの読み書きを行う際のユーザー。
+  // VS Code上でターミナルを開いたとき、その bash や zsh プロセスは remoteUser の権限で起動します。ファイルを作成・保存するバックエンドプロセスも同様
+   // コンテナを起動した後、VS Codeは裏側で **`docker exec` を使って、コンテナの中に「VS Code Server」というNode.jsのプログラムを放り込みます**（前回お話しした `setns()` による名前空間の参加です）
+  // VS Code上でターミナル（`bash` など）を開いたり、PythonやTypeScriptの拡張機能（言語サーバー）が起動したりするとき、これらは `dockerd` が直接外から放り込んでいるのではなく、**コンテナ内にいる「VS Code Server」が `fork()` して作った子プロセス
+  //`remoteUser` は、まさに**「放り込まれるプロセス（VS Code Serverやターミナルなど）を、コンテナ内のどのユーザーの権限で動かすか」**を指定するものです。
+  "remoteUser": "node",
+
+  // features は使わない:
+  // features は Dev Container CLI / VS Code ビルド時にしか動かない。
+  // 素の docker compose up でも同じ環境になるよう、
+  // Claude Code CLI 含む全ツールを Dockerfile に直書きしている。
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}

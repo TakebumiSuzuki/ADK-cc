@@ -1,0 +1,27 @@
+{
+  "plansDirectory": "./docs/plans",
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/secrets/**)",
+      "Bash(env)",
+      "Bash(printenv*)",
+      "Bash(cat .env*)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "failIfUnavailable": false,
+    "allowUnsandboxedCommands": true,
+    "excludedCommands": ["docker *"],
+    "filesystem": {
+      "allowWrite": ["~/.kube", "/tmp/build"]
+    },
+    "network": {
+      "allowedDomains": ["github.com", "*.npmjs.org", "registry.yarnpkg.com"]
+    }
+  }
+}

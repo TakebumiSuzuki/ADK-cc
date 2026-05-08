@@ -1,0 +1,25 @@
+services:
+  claude-code:
+    build:
+      context: .
+    # VS Code がアタッチするためコンテナを生かし続ける
+    command: sleep infinity
+    # user: は指定しない。Dockerfile の USER node がデフォルトユーザーになる。
+    # compose 側で user: を固定すると VS Code Server の初期セットアップで
+    # 権限エラーが起きるため、ユーザー切替は devcontainer.json の remoteUser に一任。
+    volumes:
+      # ワークスペース bind mount
+      # compose ファイルからの相対パス ../ = プロジェクトルート
+      # VS Code 経由でも素の docker compose up でも同じパスに解決される
+      - ../:/workspaces/cc-dev-container
+      # 永続化: コンテナ再作成時に消えると困るものだけ named volume に
+      # ここで /home/node/ディレクトリはユーザー名が nodeなので、そのユーザー名。
+      # claude-config:~/.claude のように書くことはできない(bash/zshが展開するが、ここでは使われないため)
+      - ${HOME}/.claude:/home/node/.claude
+      - ${HOME}/.claude.json:/home/node/.claude.json
+      - uv-cache:/home/node/.cache/uv
+      - npm-cache:/home/node/.npm
+
+volumes:
+  uv-cache:
+  npm-cache:
