@@ -1,6 +1,8 @@
 {
   "permissions": {
     "allow": [
+      "Skill(claude-product-knowledge)",
+      "WebSearch"
     ]
   }
 }

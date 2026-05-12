@@ -1,27 +1,90 @@
 {
-  "plansDirectory": "./docs/plans",
   "permissions": {
     "deny": [
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Read(./**/.env)",
-      "Read(./**/secrets/**)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.kube/config)",
+      "Read(~/.docker/config.json)",
+      "Read(~/.netrc)",
+      "Read(.git-credentials)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/id_rsa*)",
+      "Read(**/secrets/**)",
+      "Read(**/credentials*.json)",
+      "Read(**/service-account*.json)",
       "Bash(env)",
       "Bash(printenv*)",
-      "Bash(cat .env*)"
+      "Bash(export -p)",
+      "Bash(cat .env*)",
+      "Bash(cat ~/.ssh/*)",
+      "Bash(cat ~/.aws/*)",
+      "Bash(cat ~/.netrc)",
+      "Bash(gh auth token*)",
+      "Bash(gh auth status --show-token*)",
+      "Bash(aws configure get*)",
+      "Bash(aws sts get-session-token*)",
+      "Bash(gcloud auth print-access-token*)",
+      "Bash(gcloud auth print-identity-token*)",
+      "Bash(kubectl config view --raw*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)",
+      "Bash(git branch -D *)",
+      "Bash(git filter-branch*)",
+      "Bash(git commit --no-verify*)",
+      "Bash(git commit -n *)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(rm -rf ~/*)",
+      "Bash(sudo rm*)",
+      "Bash(chmod -R 777*)",
+      "Bash(curl * | sh*)",
+      "Bash(curl * | bash*)",
+      "Bash(wget * | sh*)",
+      "Bash(wget * | bash*)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(npm publish *)",
+      "Bash(docker push *)",
+      "Bash(gh release create *)"
     ]
+  },
+  "enabledPlugins": {
+    "context7@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "hookify@claude-plugins-official": true,
+    "claude-code-setup@claude-plugins-official": true,
+    "document-skills@anthropic-agent-skills": true
   },
   "sandbox": {
     "enabled": true,
-    "autoAllowBashIfSandboxed": true,
     "failIfUnavailable": false,
-    "allowUnsandboxedCommands": true,
-    "excludedCommands": ["docker *"],
-    "filesystem": {
-      "allowWrite": ["~/.kube", "/tmp/build"]
-    },
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
     "network": {
-      "allowedDomains": ["github.com", "*.npmjs.org", "registry.yarnpkg.com"]
-    }
-  }
+      "allowedDomains": [
+        "github.com",
+        "*.npmjs.org",
+        "registry.yarnpkg.com"
+      ]
+    },
+    "filesystem": {
+      "allowWrite": [
+        "~/.kube",
+        "/tmp/build"
+      ]
+    },
+    "excludedCommands": [
+      "docker *"
+    ]
+  },
+  "plansDirectory": "./docs/plans"
 }

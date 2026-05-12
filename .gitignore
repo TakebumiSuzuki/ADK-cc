@@ -1,0 +1,133 @@
+# ===== OS =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ===== Editor / IDE =====
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== Claude Code =====
+.claude/settings.local.json
+.claude/.DS_Store
+
+# ===== Environment variables / secrets =====
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+
+# ===== Logs =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ===== Node.js / JavaScript / TypeScript =====
+node_modules/
+jspm_packages/
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Build output
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+.astro/
+.turbo/
+.vercel/
+.netlify/
+
+# TypeScript
+*.tsbuildinfo
+.tscache/
+
+# Test / coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Bundler caches
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Packaging / build
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+sdist/
+wheels/
+pip-wheel-metadata/
+*.manifest
+*.spec
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.tox/
+.nox/
+.hypothesis/
+.dmypy.json
+dmypy.json
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+
+# Jupyter
+.ipynb_checkpoints/
+profile_default/
+ipython_config.py
+
+# ===== Misc =====
+tmp/
+temp/
+*.bak
+*.tmp

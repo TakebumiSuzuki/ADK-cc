@@ -14,6 +14,11 @@
   //`remoteUser` は、まさに**「放り込まれるプロセス（VS Code Serverやターミナルなど）を、コンテナ内のどのユーザーの権限で動かすか」**を指定するものです。
   "remoteUser": "node",
 
+  // コンテナ作成後、ユーザースコープ ~/.claude に statusLine をセットアップ
+  // (~/.claude/statusline-command.sh は .devcontainer 側への symlink。
+  //  ~/.claude/settings.json には statusLine キーを jq でマージし既存設定は保持)
+  "postCreateCommand": "sh .devcontainer/setup-statusline.sh",
+
   // features は使わない:
   // features は Dev Container CLI / VS Code ビルド時にしか動かない。
   // 素の docker compose up でも同じ環境になるよう、
