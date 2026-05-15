@@ -1,0 +1,11 @@
+[project]
+name = "cc-dev-container"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "google-agents-cli>=0.1.3",
+]
