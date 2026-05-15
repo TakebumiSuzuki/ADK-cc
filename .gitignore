@@ -131,3 +131,8 @@ tmp/
 temp/
 *.bak
 *.tmp
+
+# ===== Agent workspace =====
+workspace/
+.google-agents-cli/
+app/.adk/

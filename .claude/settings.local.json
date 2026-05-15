@@ -3,7 +3,11 @@
     "allow": [
       "Skill(claude-product-knowledge)",
       "WebSearch",
-      "WebFetch(domain:google.github.io)"
+      "WebFetch(domain:google.github.io)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(uv run *)",
+      "Bash(uv add *)"
     ]
   }
 }
