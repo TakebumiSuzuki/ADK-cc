@@ -22,6 +22,8 @@ from google.cloud import logging as google_cloud_logging
 from app.app_utils.telemetry import setup_telemetry
 from app.app_utils.typing import Feedback
 
+# agents-cli playground は内部で独自に get_fast_api_app() を呼んでuvicornを起動するので、
+# このファイル (fast_api_app.py) 自体は読まれない。
 setup_telemetry()
 _, project_id = google.auth.default()
 logging_client = google_cloud_logging.Client()
