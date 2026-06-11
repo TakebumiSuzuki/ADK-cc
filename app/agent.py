@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from google.adk.agents import Agent
 from google.adk.apps import App
 from google.adk.environment import LocalEnvironment
@@ -20,6 +22,7 @@ from google.adk.models import Gemini
 from google.adk.tools import google_search
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.environment import EnvironmentToolset
+from google.adk.tools.google_api_tool import GoogleApiToolset
 from google.adk.tools.load_web_page import load_web_page
 from google.genai import types
 
@@ -38,6 +41,25 @@ search_agent = Agent(
     tools=[google_search],
 )
 
+# Google Drive: ファイルの検索・読み書き・共有を OAuth（ユーザー同意）で動的にアクセスする。
+# files.list で検索、get/export で取得、create/update でアップロード・更新、copy/delete も可能。
+# 認証情報は .env から読む（リポジトリに秘密情報を書かない）。
+# 注意: GoogleApiToolset は生成時に Drive API 仕様を取得するため Application Default
+# Credentials を必要とする。ローカルで playground / import する前に
+# `gcloud auth application-default login` を実行しておくこと。
+drive_toolset = GoogleApiToolset(
+    api_name="drive",
+    api_version="v3",
+    client_id=os.environ.get("GOOGLE_OAUTH_CLIENT_ID"),
+    client_secret=os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET"),
+    # 操作を絞りたい場合は tool_filter を指定（例: 読み書き＋検索のみ）:
+    # tool_filter=[
+    #     "drive_files_list", "drive_files_get", "drive_files_export",
+    #     "drive_files_create", "drive_files_update", "drive_files_copy",
+    #     "drive_files_delete",
+    # ],
+)
+
 root_agent = Agent(
     name="mini_claude_code",
     model=Gemini(model="gemini-flash-latest", retry_options=_RETRY),
@@ -51,7 +73,9 @@ root_agent = Agent(
         "- EditFile: edit an existing file in ./workspace\n"
         "- Execute: run shell commands (working directory is ./workspace)\n"
         "- load_web_page: fetch and return the text content of a URL\n"
-        "- web_searcher: delegate Google Search queries to a sub-agent\n\n"
+        "- web_searcher: delegate Google Search queries to a sub-agent\n"
+        "- Google Drive tools: search files (drive_files_list with a `q` query), "
+        "read/export them, and create/update/copy/delete files on the user's Drive\n\n"
         "Rules:\n"
         "- All file operations must stay inside the ./workspace directory.\n"
         "- Never execute destructive commands (e.g. rm -rf /, format drives).\n"
@@ -64,6 +88,7 @@ root_agent = Agent(
         ),
         load_web_page,
         AgentTool(agent=search_agent),
+        drive_toolset,
     ],
 )
 

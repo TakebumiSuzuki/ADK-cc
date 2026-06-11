@@ -1,0 +1,5 @@
+name: cc-dev-container
+acli_version: 0.4.0
+agent_directory: app
+create_params:
+  deployment_target: agent_runtime
