@@ -66,14 +66,15 @@ gcloud コマンド不要。VS Code が裏でトンネルを張る。
 
 ```bash
 gcloud workstations start-tcp-tunnel \
-  --project=<PROJECT_ID> \
-  --region=<REGION> \
-  --cluster=<CLUSTER_ID> \
-  --config=<CONFIG_ID> \
-  <WORKSTATION_ID> \
+  --project=arvato-developments \
+  --region=asia-southeast1 \
+  --cluster=asia-cluster \
+  --config=config-asia \
+  workstation-takebumi \
   8000 \
   --local-host-port=localhost:8000
 ```
+
 
 - 左の `8000` = Workstation 側ポート、`--local-host-port` の `8000` = 手元ポート。
   **手元ポートは手順 1 で登録した URI と一致**させる（ここでは両方 8000）。
