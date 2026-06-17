@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<!--
+  ════════════════════════════════════════════════════════════════════════════
+  compose-html-slides — TEMPLATE / SKELETON
+  ════════════════════════════════════════════════════════════════════════════
+  HOW TO USE THIS FILE
+  1. Copy it to your output path.
+  2. Keep <head>, <style>, and <script> EXACTLY as-is (the design system + the
+     navigation logic). The only thing you normally touch in :root is one number,
+     --fs-scale, if the whole deck needs to be bigger/smaller.
+  3. Replace the <nav> list and the <main> slides with your content, following the
+     component examples below. Each component is preceded by a comment telling you
+     what data it expects and (for charts) the exact formula to compute its numbers.
+  4. Keep the nav contract: one <a> per slide, in order, data-i = 0,1,2,…
+     The page-number footers fill in automatically — don't hand-write them.
+
+  See ../SKILL.md for the page-splitting rules, the table→chart mapping, and the
+  fidelity rules (carry every "Source:" line and "[needs-verification]" marker).
+  Every component appears once below, populated with representative demo data.
+  ════════════════════════════════════════════════════════════════════════════
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DECK TITLE — Organization</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400..900;1,400..700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ============ PALETTE ============ (recolour the whole deck by editing these) */
+    --paper:#f5ecd6; --ink:#2b1d14; --espresso:#3a2417; --crema:#c98a3c;
+    --terracotta:#b8502f; --olive:#7a7340; --line:#d8c7a4; --soft:#efe2c4;
+    --nav-bg:#2b1d14; --nav-ink:#e9dcc0; --good:#6f7a3a;
+
+    /* ============ TYPE SCALE ============
+       ▼▼ MASTER KNOB — change ONLY this to resize EVERY piece of text on every
+          slide at once.  1.0 = original design · 1.2 = shipped default (+20%) ·
+          push higher for a large room, lower for a denser deck.
+       To nudge a single role instead, edit its individual token below. */
+    --fs-scale:1.2;
+
+    /* headings & display */
+    --fs-h1:         calc(clamp(40px,5.5vw,72px) * var(--fs-scale));
+    --fs-h2:         calc(28px   * var(--fs-scale));
+    --fs-h2i:        calc(15px   * var(--fs-scale));   /* circled section number */
+    --fs-kicker:     calc(21px   * var(--fs-scale));   /* "Part I" / eyebrow      */
+    --fs-quote:      calc(clamp(26px,3.3vw,42px) * var(--fs-scale));
+    --fs-statnum:    calc(clamp(32px,4.4vw,52px) * var(--fs-scale));
+    --fs-donutnum:   calc(34px   * var(--fs-scale));
+    --fs-calloutbig: calc(54px   * var(--fs-scale));
+
+    /* body & labels */
+    --fs-lede:       calc(19px   * var(--fs-scale));   /* primary slide prose     */
+    --fs-lede-sm:    calc(16.5px * var(--fs-scale));   /* secondary slide prose    */
+    --fs-meta:       calc(12.5px * var(--fs-scale));   /* cover meta row           */
+    --fs-statcap:    calc(14px   * var(--fs-scale));
+    --fs-src:        calc(12.5px * var(--fs-scale));   /* source attribution       */
+    --fs-note:       calc(11px   * var(--fs-scale));
+    --fs-pageno:     calc(13px   * var(--fs-scale));
+
+    /* chart elements */
+    --fs-bartitle:   calc(17px   * var(--fs-scale));
+    --fs-barname:    calc(17px   * var(--fs-scale));
+    --fs-barval:     calc(17px   * var(--fs-scale));
+    --fs-barsmall:   calc(13px   * var(--fs-scale));
+    --fs-tick:       calc(11px   * var(--fs-scale));
+    --fs-chip:       calc(13px   * var(--fs-scale));
+    --fs-legend:     calc(15.5px * var(--fs-scale));
+    --fs-donutcap:   calc(11px   * var(--fs-scale));
+    --fs-vlab:       calc(18px   * var(--fs-scale));   /* line-chart value labels  */
+    --fs-xlab:       calc(13px   * var(--fs-scale));   /* line-chart x labels      */
+    --fs-histcount:  calc(15px   * var(--fs-scale));   /* histogram bin counts     */
+    --fs-histx:      calc(13px   * var(--fs-scale));   /* histogram bin labels     */
+    --fs-scatlab:    calc(12px   * var(--fs-scale));   /* scatter tick labels      */
+    --fs-scattitle:  calc(13.5px * var(--fs-scale));   /* scatter axis titles      */
+    --fs-callout:    calc(16px   * var(--fs-scale));
+    --fs-bullegend:  calc(14px   * var(--fs-scale));
+    --fs-bullbl:     calc(15px   * var(--fs-scale));
+    --fs-bulsmall:   calc(12.5px * var(--fs-scale));
+    --fs-bulvals:    calc(13.5px * var(--fs-scale));
+
+    /* points / takeaways / q&a */
+    --fs-ptic:       calc(23px   * var(--fs-scale));
+    --fs-pth3:       calc(17px   * var(--fs-scale));
+    --fs-ptp:        calc(14px   * var(--fs-scale));
+    --fs-take:       calc(17px   * var(--fs-scale));
+    --fs-qaq:        calc(20px   * var(--fs-scale));
+    --fs-qaa:        calc(16.5px * var(--fs-scale));
+
+    /* left nav */
+    --fs-brand:      calc(19px   * var(--fs-scale));
+    --fs-brandsub:   calc(10.5px * var(--fs-scale));
+    --fs-nav:        calc(15px   * var(--fs-scale));
+    --fs-navnum:     calc(12.5px * var(--fs-scale));
+    --fs-navpart:    calc(15.5px * var(--fs-scale));
+    --fs-navsub:     calc(14.5px * var(--fs-scale));
+    --fs-foot:       calc(12px   * var(--fs-scale));
+
+    /* ============ LAYOUT ============ */
+    --nav-w:300px;          /* left navigation width                              */
+    --slide-max:1040px;     /* slide content max width                            */
+    --slide-min-h:585px;    /* 1040*9/16 ≈ 585 → minimum 16:9; grows taller w/ content */
+    --slide-pad:56px 60px;  /* slide inner padding                                */
+    --fs-watermark:340px;   /* decorative chapter numeral (independent of --fs-scale) */
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Inter",-apple-system,system-ui,sans-serif;color:var(--ink);
+    background:var(--espresso);line-height:1.6;-webkit-font-smoothing:antialiased;
+    letter-spacing:-.005em;display:flex;height:100vh;overflow:hidden;}
+  /* tabular figures for all numeric display elements (column alignment) */
+  .stat .num,.bar .val,.bul .vals,.pageno,.donut .center b,.legend b,.chip,
+  .linechart .vlab,.nav a .n{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+
+  /* ============ LEFT NAV ============ */
+  .nav{width:var(--nav-w);flex:0 0 var(--nav-w);background:var(--nav-bg);color:var(--nav-ink);
+    height:100vh;overflow-y:auto;padding:26px 0;display:flex;flex-direction:column;}
+  .nav .brand{padding:0 24px 20px;border-bottom:1px solid rgba(233,220,192,.15);}
+  .nav .brand b{font-family:"Inter",sans-serif;font-size:var(--fs-brand);color:#fff;display:block;letter-spacing:-.01em;line-height:1.2;}
+  .nav .brand span{font-size:var(--fs-brandsub);letter-spacing:.16em;text-transform:uppercase;opacity:.6;display:block;margin-top:4px;}
+  .nav ul{list-style:none;padding:12px 0;flex:1;}
+  .nav li{margin:1px 12px;}
+  .nav a{display:flex;gap:11px;align-items:baseline;padding:9px 12px;border-radius:8px;
+    text-decoration:none;color:var(--nav-ink);font-size:var(--fs-nav);transition:.18s;border:1px solid transparent;}
+  .nav a .n{font-family:"Inter",sans-serif;font-size:var(--fs-navnum);opacity:.5;min-width:22px;}
+  .nav a:hover{background:rgba(233,220,192,.08);}
+  .nav a.active{background:var(--terracotta);color:#fff;border-color:rgba(255,255,255,.15);}
+  .nav a.active .n{opacity:.85;}
+  .nav a.part{margin-top:11px;font-family:"Inter",sans-serif;font-style:italic;font-size:var(--fs-navpart);
+    color:var(--crema);border-top:1px solid rgba(233,220,192,.12);border-radius:0 0 8px 8px;padding-top:13px;}
+  .nav a.part .n{font-style:normal;font-weight:600;opacity:.7;}
+  .nav a.part:hover{background:rgba(233,220,192,.06);}
+  .nav a.part.active{background:var(--terracotta);color:#fff;border-radius:8px;border-top-color:transparent;}
+  .nav a.sub{padding-left:30px;font-size:var(--fs-navsub);opacity:.92;}
+  .nav .foot{padding:16px 24px 0;font-size:var(--fs-foot);opacity:.45;border-top:1px solid rgba(233,220,192,.15);}
+  .nav .foot kbd{background:rgba(233,220,192,.15);border-radius:4px;padding:1px 6px;font-family:inherit;}
+
+  /* ============ RIGHT STAGE ============ */
+  .stage{flex:1;height:100vh;overflow-y:auto;padding:40px;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 18% 12%, rgba(201,138,60,.10), transparent 42%),
+      radial-gradient(circle at 88% 78%, rgba(184,80,47,.08), transparent 45%);}
+
+  .slide{display:none;max-width:var(--slide-max);margin:0 auto;background:#fbf5e6;
+    border:1px solid var(--line);min-height:var(--slide-min-h);
+    box-shadow:0 30px 60px -25px rgba(58,36,23,.5);
+    padding:var(--slide-pad);position:relative;overflow:hidden;
+    animation:fade .45s ease;}
+  .slide.show{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+  .slide::after{content:"";position:absolute;top:0;right:0;width:0;height:0;
+    border-style:solid;border-width:0 56px 56px 0;
+    border-color:transparent var(--terracotta) transparent transparent;opacity:.9;}
+  .pageno{position:absolute;bottom:22px;right:26px;font-family:"Inter",sans-serif;
+    font-size:var(--fs-pageno);color:#b09a72;}
+
+  /* shared type */
+  .kicker{font-family:"Inter",sans-serif;font-style:italic;font-weight:500;color:var(--terracotta);
+    font-size:var(--fs-kicker);display:flex;align-items:center;gap:12px;}
+  .kicker::before{content:"";width:42px;height:2px;background:var(--terracotta);}
+  h1{font-family:"Inter",sans-serif;font-weight:900;font-size:var(--fs-h1);
+    line-height:.98;letter-spacing:-.02em;color:var(--espresso);margin:14px 0 8px;}
+  h1 em{font-style:italic;font-weight:500;color:var(--crema);}
+  h2{font-family:"Inter",sans-serif;font-weight:600;font-size:var(--fs-h2);color:var(--espresso);
+    margin-bottom:10px;display:flex;align-items:baseline;gap:12px;}
+  h2 i{font-style:normal;color:var(--crema);font-size:var(--fs-h2i);border:1.5px solid var(--crema);
+    border-radius:50%;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .lede{max-width:680px;color:#5a4630;font-size:var(--fs-lede);margin-top:14px;}
+  .lede.sm{font-size:var(--fs-lede-sm);}
+
+  /* source attribution */
+  .src{margin-top:18px;font-size:var(--fs-src);color:#9a815c;font-style:italic;letter-spacing:.02em;}
+  .src + .src{margin-top:3px;}
+  .note{font-size:var(--fs-note);color:#b08a5a;font-style:italic;}
+
+  /* cover / chapter */
+  .cover{display:flex;flex-direction:column;justify-content:center;min-height:520px;}
+  .cover .meta{margin-top:34px;padding-top:20px;border-top:1px dashed var(--line);
+    display:flex;gap:30px;flex-wrap:wrap;font-size:var(--fs-meta);color:#8a6f4d;text-transform:uppercase;letter-spacing:.12em;}
+  .cover .meta b{color:var(--espresso);}
+  .chapter .watermark{position:absolute;top:-30px;right:20px;font-family:"Inter",sans-serif;
+    font-weight:900;font-size:var(--fs-watermark);line-height:1;color:rgba(184,80,47,.07);pointer-events:none;z-index:0;}
+  .chapter .cover{position:relative;z-index:1;}
+  .chapter h1{font-weight:800;}
+  /* Cover + chapter-divider display titles keep their pre-bump size: the /1.2
+     cancels the global +20% (--fs-scale) so these already-large titles don't grow,
+     while still tracking any future --fs-scale change. */
+  .cover h1{font-size:calc(var(--fs-h1) / 1.2);}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);margin:8px 0 0;
+    border-top:2px solid var(--espresso);border-bottom:2px solid var(--espresso);}
+  .stats.four{grid-template-columns:repeat(4,1fr);}
+  .stat{padding:26px 20px;border-right:1px solid var(--line);}
+  .stat:last-child{border-right:none;}
+  .stat .num{font-family:"Inter",sans-serif;font-weight:900;font-size:var(--fs-statnum);
+    line-height:1;color:var(--terracotta);letter-spacing:-.02em;}
+  .stat .num span{font-size:.40em;color:var(--espresso);font-weight:600;}
+  .stat .cap{margin-top:10px;font-size:var(--fs-statcap);color:#6b543a;}
+
+  /* bars */
+  .barwrap{margin-top:6px;}
+  .bar-title{font-family:"Inter",sans-serif;font-size:var(--fs-bartitle);color:var(--espresso);margin:0 0 14px;font-weight:600;}
+  .bar{margin-bottom:16px;}
+  .bar .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .bar .name{font-size:var(--fs-barname);font-weight:500;}
+  .bar .val{font-family:"Inter",sans-serif;font-weight:600;font-size:var(--fs-barval);color:var(--terracotta);}
+  .bar .val small{font-family:"Inter",sans-serif;font-weight:400;font-size:var(--fs-barsmall);color:#9a815c;margin-left:4px;}
+  .track{height:16px;background:var(--soft);border-radius:3px;overflow:hidden;position:relative;}
+  .fill{height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,var(--crema),var(--terracotta));}
+  .fill.down{background:linear-gradient(90deg,#bcae7a,var(--olive));}
+  .show .fill{animation:grow 1.1s cubic-bezier(.2,.7,.2,1) forwards;}
+  @keyframes grow{to{width:var(--w);}}
+  .tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--espresso);opacity:.55;}
+  .tick::after{content:attr(data-label);position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+    font-size:var(--fs-tick);color:#8a6f4d;white-space:nowrap;font-family:"Inter",sans-serif;}
+  .chip{font-family:"Inter",sans-serif;font-weight:600;font-size:var(--fs-chip);margin-left:10px;padding:1px 8px;border-radius:11px;}
+  .chip.up{color:var(--good);background:rgba(111,122,58,.14);}
+  .chip.dn{color:var(--terracotta);background:rgba(184,80,47,.12);}
+
+  /* two-col */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:46px;align-items:start;margin-top:8px;}
+  .two.wide-left{grid-template-columns:1.15fr .85fr;}
+
+  /* donut */
+  .donut-wrap{display:flex;flex-direction:column;align-items:center;gap:22px;}
+  .donut{position:relative;width:210px;height:210px;}
+  .donut svg{transform:rotate(-90deg);}
+  .ring{fill:none;stroke-width:28;stroke-dasharray:var(--dash);stroke-dashoffset:var(--off);}
+  .show .ring{animation:draw 1.3s ease forwards;}
+  @keyframes draw{from{stroke-dasharray:0 999;}}
+  .donut .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .donut .center b{font-family:"Inter",sans-serif;font-size:var(--fs-donutnum);color:var(--espresso);line-height:1;}
+  .donut .center span{font-size:var(--fs-donutcap);color:#8a6f4d;letter-spacing:.1em;}
+  .legend{display:flex;flex-direction:column;gap:9px;width:100%;}
+  .legend div{display:flex;align-items:center;gap:10px;font-size:var(--fs-legend);}
+  .legend i{width:13px;height:13px;border-radius:3px;flex:0 0 auto;}
+  .legend b{margin-left:auto;font-family:"Inter",sans-serif;}
+  .legend small{color:#8a6f4d;}
+
+  /* line chart */
+  .linechart{width:100%;height:auto;}
+  .linechart .axis{stroke:var(--line);stroke-width:1;}
+  .linechart .area{fill:url(#lg);opacity:.9;}
+  .linechart .ln{fill:none;stroke:var(--terracotta);stroke-width:3;stroke-linejoin:round;
+    stroke-dasharray:900;stroke-dashoffset:900;}
+  .show .linechart .ln{animation:trace 1.4s ease forwards;}
+  @keyframes trace{to{stroke-dashoffset:0;}}
+  .linechart .dot{fill:#fbf5e6;stroke:var(--terracotta);stroke-width:3;}
+  .linechart .vlab{font-family:"Inter",sans-serif;font-weight:700;font-size:var(--fs-vlab);fill:var(--espresso);text-anchor:middle;}
+  .linechart .xlab{font-size:var(--fs-xlab);fill:#8a6f4d;text-anchor:middle;}
+
+  /* histogram (distribution of one variable; bins contiguous) */
+  .histwrap{margin-top:6px;}
+  .hist-title{font-family:"Inter",sans-serif;font-size:var(--fs-bartitle);color:var(--espresso);margin:0 0 18px;font-weight:600;}
+  .hist{display:flex;align-items:flex-end;gap:3px;height:280px;padding-top:26px;border-bottom:2px solid var(--espresso);}
+  .hist .col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;}
+  .hist .hbar{width:100%;height:0;border-radius:3px 3px 0 0;position:relative;
+    background:linear-gradient(180deg,var(--crema),var(--terracotta));}
+  .show .hist .hbar{animation:histgrow 1.1s cubic-bezier(.2,.7,.2,1) forwards;}
+  @keyframes histgrow{to{height:var(--h);}}
+  .hist .hbar::before{content:attr(data-c);position:absolute;top:-22px;left:0;right:0;text-align:center;
+    font-family:"Inter",sans-serif;font-weight:600;font-size:var(--fs-histcount);color:var(--terracotta);}
+  .hist-x{display:flex;gap:3px;margin-top:8px;}
+  .hist-x span{flex:1;text-align:center;font-size:var(--fs-histx);color:#8a6f4d;}
+
+  /* scatter plot (two value axes; vary .mk r for a bubble chart) */
+  .scatter{width:100%;height:auto;}
+  .scatter .grid{stroke:var(--line);stroke-width:1;}
+  .scatter .axis{stroke:var(--espresso);stroke-width:1.5;}
+  .scatter .mk{fill:var(--terracotta);fill-opacity:.72;stroke:#fbf5e6;stroke-width:1.5;}
+  .show .scatter .mk{animation:pop .55s cubic-bezier(.2,.7,.2,1) backwards;transform-box:fill-box;transform-origin:center;}
+  @keyframes pop{from{transform:scale(0);}}
+  .scatter .alab{font-size:var(--fs-scatlab);fill:#8a6f4d;}
+  .scatter .atitle{font-family:"Inter",sans-serif;font-size:var(--fs-scattitle);font-weight:600;fill:var(--espresso);}
+
+  /* points */
+  .plist{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:8px;}
+  .pt .ic{width:48px;height:48px;border-radius:13px;background:var(--espresso);color:#fbf5e6;
+    display:flex;align-items:center;justify-content:center;font-family:"Inter",sans-serif;
+    font-style:italic;font-size:var(--fs-ptic);margin-bottom:14px;}
+  .pt:nth-child(2) .ic{background:var(--terracotta);}
+  .pt:nth-child(3) .ic{background:var(--olive);}
+  .pt h3{font-size:var(--fs-pth3);color:var(--espresso);margin-bottom:6px;}
+  .pt p{font-size:var(--fs-ptp);color:#6b543a;}
+
+  /* callout */
+  .callout{margin-top:24px;border-left:5px solid var(--terracotta);background:#fff;
+    padding:18px 24px;border-radius:0 10px 10px 0;display:flex;align-items:center;gap:22px;}
+  .callout .big{font-family:"Inter",sans-serif;font-weight:900;font-size:var(--fs-calloutbig);color:var(--terracotta);line-height:1;}
+  .callout .txt{font-size:var(--fs-callout);color:#5a4630;}
+  .callout .txt b{color:var(--espresso);}
+
+  /* bullet (benchmark) chart */
+  .bullet-legend{display:flex;gap:22px;flex-wrap:wrap;font-size:var(--fs-bullegend);color:#6b543a;margin:6px 0 18px;}
+  .bullet-legend span{display:flex;align-items:center;gap:7px;}
+  .bullet-legend .dotm{width:13px;height:13px;border-radius:50%;background:var(--terracotta);border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.3);}
+  .bullet-legend .linei{width:14px;height:2px;background:#9a815c;}
+  .bullet-legend .linet{width:14px;height:2px;background:var(--olive);}
+  .bul{display:grid;grid-template-columns:230px 1fr 140px;gap:16px;align-items:center;margin-bottom:12px;}
+  .bul .lbl{font-size:var(--fs-bullbl);color:var(--ink);line-height:1.3;}
+  .bul .lbl small{display:block;color:#9a815c;font-size:var(--fs-bulsmall);}
+  .bul .track2{position:relative;height:20px;background:var(--soft);border-radius:5px;}
+  .bul .band{position:absolute;top:0;bottom:0;background:rgba(122,115,64,.16);border-radius:5px;}
+  .bul .ind{position:absolute;top:-3px;bottom:-3px;width:2px;background:#9a815c;}
+  .bul .topq{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--olive);}
+  .bul .mcg{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--terracotta);
+    transform:translate(-50%,-50%);border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35);z-index:2;}
+  .bul .vals{font-size:var(--fs-bulvals);color:#8a6f4d;text-align:right;font-family:"Inter",sans-serif;letter-spacing:.01em;}
+  .bul .vals b{color:var(--terracotta);}
+
+  /* takeaways */
+  .takeaways{list-style:none;margin-top:10px;}
+  .takeaways li{position:relative;padding:14px 0 14px 30px;border-bottom:1px dashed var(--line);font-size:var(--fs-take);color:#5a4630;}
+  .takeaways li:last-child{border-bottom:none;}
+  .takeaways li::before{content:"";position:absolute;left:4px;top:20px;width:9px;height:9px;border-radius:50%;background:var(--terracotta);}
+  .takeaways li b{color:var(--espresso);}
+
+  /* Q&A */
+  .qa{display:flex;flex-direction:column;gap:18px;margin-top:8px;}
+  .qa .item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 24px;}
+  .qa .q{font-family:"Inter",sans-serif;font-style:italic;font-weight:500;font-size:var(--fs-qaq);color:var(--terracotta);margin-bottom:8px;}
+  .qa .a{font-size:var(--fs-qaa);color:#5a4630;}
+
+  .big-quote{font-family:"Inter",sans-serif;font-size:var(--fs-quote);line-height:1.25;
+    color:var(--espresso);max-width:820px;font-weight:500;}
+  .big-quote em{color:var(--terracotta);font-style:italic;}
+  /* Summary-slide body: 20% smaller than its pre-bump size (×.8), with /1.2 to
+     cancel the global +20% bump. Tracks --fs-scale like everything else. */
+  .big-quote.summary-body{font-size:calc(var(--fs-quote) * .8 / 1.2);}
+</style>
+</head>
+<body>
+
+  <!-- ============ LEFT NAVIGATION ============
+       One <a> per slide, in order, data-i = 0,1,2,…  No gaps.
+       Chapter dividers → class="part" (+ a Roman numeral in .n).
+       Content slides   → class="sub".  Cover & standalone slides → no class. -->
+  <nav class="nav">
+    <div class="brand">
+      <b>Organization Name</b>
+      <span>Deck subtitle / occasion</span>
+    </div>
+    <ul id="navlist">
+      <li><a href="#" data-i="0" class="active"><span class="n">01</span>Cover</a></li>
+      <li><a href="#" data-i="1" class="part"><span class="n">I</span>Section Title</a></li>
+      <li><a href="#" data-i="2" class="sub"><span class="n">03</span>Stat band &amp; callout</a></li>
+      <li><a href="#" data-i="3" class="sub"><span class="n">04</span>Bar charts</a></li>
+      <li><a href="#" data-i="4" class="sub"><span class="n">05</span>Histogram</a></li>
+      <li><a href="#" data-i="5" class="sub"><span class="n">06</span>Line chart</a></li>
+      <li><a href="#" data-i="6" class="sub"><span class="n">07</span>Scatter plot</a></li>
+      <li><a href="#" data-i="7" class="sub"><span class="n">08</span>Donut &amp; two-column</a></li>
+      <li><a href="#" data-i="8" class="sub"><span class="n">09</span>Benchmark bullet</a></li>
+      <li><a href="#" data-i="9" class="part"><span class="n">II</span>Conclusion</a></li>
+      <li><a href="#" data-i="10" class="sub"><span class="n">11</span>Summary</a></li>
+      <li><a href="#" data-i="11" class="sub"><span class="n">12</span>Key Takeaways</a></li>
+      <li><a href="#" data-i="12" class="sub"><span class="n">13</span>Anticipated Q&amp;A</a></li>
+    </ul>
+    <div class="foot">
+      <kbd>←</kbd> <kbd>→</kbd> to navigate
+    </div>
+  </nav>
+
+  <!-- ============ RIGHT STAGE ============ -->
+  <main class="stage" id="stage">
+
+    <!-- Shared SVG paint servers — defined ONCE for the whole deck so any number
+         of line charts can reference url(#lg) without duplicating the id.
+         (Two <svg>s both declaring id="lg" is invalid HTML and the ids collide.) -->
+    <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+      <defs>
+        <linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#c98a3c" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#c98a3c" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <!-- ░░ COVER ░░ built from the report's title block. Slide 0 keeps class "show". -->
+    <section class="slide show">
+      <div class="cover">
+        <p class="kicker">Eyebrow / report name</p>
+        <h1>Headline with an<br><em>emphasis</em> word.</h1>
+        <p class="lede">One- or two-sentence framing of the whole deck — the single thing the audience should leave with.</p>
+        <div class="meta">
+          <div><b>Prepared by</b> Author / org</div>
+          <div><b>Date</b> YYYY-MM-DD</div>
+          <div><b>Audience</b> Who it's for</div>
+          <div><b>Duration</b> 30 min</div>
+        </div>
+      </div>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CHAPTER DIVIDER ░░ one per `##` section. Near-empty: title only.
+         The watermark numeral and the "Part N" kicker should match the section's order. -->
+    <section class="slide chapter">
+      <div class="watermark">I</div>
+      <div class="cover">
+        <p class="kicker">Part I</p>
+        <h1>Section<br><em>Title</em></h1>
+        <p class="lede">One line previewing what this section argues.</p>
+      </div>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CONTENT: STAT BAND + CALLOUT ░░
+         STATS: use for a handful of headline KPIs (one number each). Default 3
+         columns; add class "four" for 4. Put the unit/suffix in <span> (renders small).
+         CALLOUT: a single number that deserves "watch-item" emphasis. -->
+    <section class="slide">
+      <h2><i>1</i>Subsection Heading</h2>
+      <p class="lede sm" style="margin-bottom:26px;">Framing sentence interpreting the numbers below.</p>
+      <div class="stats">
+        <div class="stat"><div class="num">42<span>%</span></div><div class="cap">What this measures</div></div>
+        <div class="stat"><div class="num">$3.1<span>M</span></div><div class="cap">What this measures</div></div>
+        <div class="stat"><div class="num">88<span>/100</span></div><div class="cap">What this measures</div></div>
+      </div>
+      <div class="callout">
+        <div class="big">55%</div>
+        <div class="txt"><b>The single sentence this number forces.</b> Supporting context for why it matters.</div>
+      </div>
+      <p class="src">Source: path/to/source.csv</p>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CONTENT: HORIZONTAL BARS ░░
+         For one series across categories. Bar width:  --w = value / max(values) × 100 (%).
+         Annotate the true value in .val (use <small> for a secondary figure).
+         Variants shown on the last two rows:
+           • .tick  = a reference marker (e.g. prior period); left% computed the same way.
+           • .chip up/.chip dn = a delta badge (green up / terracotta down).
+           • .fill.down = recolour a bar that moved the wrong way. -->
+    <section class="slide">
+      <h2><i>2</i>Subsection Heading</h2>
+      <p class="lede sm" style="margin-bottom:22px;">Framing sentence.</p>
+      <div class="barwrap">
+        <p class="bar-title">Optional chart title / what the bars show</p>
+        <div class="bar"><div class="row"><span class="name">Category A</span><span class="val">12.3 <small>+13% YoY</small></span></div><div class="track"><div class="fill" style="--w:100%"></div></div></div>
+        <div class="bar"><div class="row"><span class="name">Category B</span><span class="val">9.6</span></div><div class="track"><div class="fill" style="--w:78%"></div></div></div>
+        <div class="bar"><div class="row"><span class="name">Category C (up vs prior)</span><span class="val">74<span class="chip up">+3</span></span></div><div class="track"><div class="fill" style="--w:74%"></div><div class="tick" data-label="prior" style="left:71%"></div></div></div>
+        <div class="bar"><div class="row"><span class="name">Category D (down vs prior)</span><span class="val">58<span class="chip dn">−2</span></span></div><div class="track"><div class="fill down" style="--w:58%"></div><div class="tick" data-label="prior" style="left:60%"></div></div></div>
+      </div>
+      <p class="src">Source: path/to/source.csv</p>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CONTENT: HISTOGRAM ░░  The distribution of ONE variable — how often each
+         value-range occurs. Bins are CONTIGUOUS (that's what separates a histogram
+         from a bar chart). For each bin:  --h = count / max(counts) × 100 (%).
+         Put the raw count in data-c (renders above the bar) and the bin RANGE under
+         it. Keep bins in value order; ≤ ~7 bins keeps the axis legible.
+         EXAMPLE BELOW: counts 3,8,17,24,19,11,4 (max 24) → --h 12.5,33.3,70.8,100,79.2,45.8,16.7. -->
+    <section class="slide">
+      <h2><i>3</i>Subsection Heading</h2>
+      <p class="lede sm" style="margin-bottom:20px;">Framing sentence describing the shape of the distribution.</p>
+      <div class="histwrap">
+        <p class="hist-title">Optional chart title / what the distribution shows</p>
+        <div class="hist">
+          <div class="col"><div class="hbar" data-c="3"  style="--h:12.5%"></div></div>
+          <div class="col"><div class="hbar" data-c="8"  style="--h:33.3%"></div></div>
+          <div class="col"><div class="hbar" data-c="17" style="--h:70.8%"></div></div>
+          <div class="col"><div class="hbar" data-c="24" style="--h:100%"></div></div>
+          <div class="col"><div class="hbar" data-c="19" style="--h:79.2%"></div></div>
+          <div class="col"><div class="hbar" data-c="11" style="--h:45.8%"></div></div>
+          <div class="col"><div class="hbar" data-c="4"  style="--h:16.7%"></div></div>
+        </div>
+        <div class="hist-x">
+          <span>0–10</span><span>10–20</span><span>20–30</span><span>30–40</span>
+          <span>40–50</span><span>50–60</span><span>60–70</span>
+        </div>
+      </div>
+      <p class="src">Source: path/to/source.csv</p>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CONTENT: LINE CHART ░░  Use when a metric over time has a SHAPE worth seeing
+         (a dip-and-recover). Pick a value window [lo,hi] that frames the data (NOT 0-based,
+         so movement is visible). For each point:  y = 195 − (value − lo)/(hi − lo) × 160.
+         x columns evenly spaced (here 80, 280, 480). Build:
+           • .area  polygon = baseline-left → each point → baseline-right
+           • .ln    polyline through the points
+           • a .dot per point, a .vlab value label above, a .xlab category label below.
+         EXAMPLE BELOW: values 93,85,89 with lo=80,hi=95 → y = 56.3,141.7,99. -->
+    <section class="slide">
+      <h2><i>4</i>Subsection Heading</h2>
+      <p class="lede sm" style="margin-bottom:14px;">Framing sentence.</p>
+      <!-- The fill gradient #lg is defined ONCE globally at the top of <main>;
+           every line chart reuses class="area" + url(#lg) — no per-chart <defs>. -->
+      <svg class="linechart" viewBox="0 0 560 240" role="img" aria-label="Describe the series">
+        <line class="axis" x1="40" y1="195" x2="520" y2="195"></line>
+        <polygon class="area" points="80,195 80,56.3 280,141.7 480,99 480,195"></polygon>
+        <polyline class="ln" points="80,56.3 280,141.7 480,99"></polyline>
+        <circle class="dot" cx="80" cy="56.3" r="6"></circle>
+        <circle class="dot" cx="280" cy="141.7" r="6"></circle>
+        <circle class="dot" cx="480" cy="99" r="6"></circle>
+        <text class="vlab" x="80" y="40">93%</text>
+        <text class="vlab" x="280" y="125">85%</text>
+        <text class="vlab" x="480" y="83">89%</text>
+        <text class="xlab" x="80" y="218">2023</text>
+        <text class="xlab" x="280" y="218">2024</text>
+        <text class="xlab" x="480" y="218">2025</text>
+      </svg>
+      <p class="src">Source: path/to/source.csv</p>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CONTENT: SCATTER PLOT ░░  Two NUMERIC variables, one point per item, to show
+         correlation/spread. Unlike the line chart, BOTH axes are real value scales —
+         pick a window for each ([xlo,xhi], [ylo,yhi]) padding the data so no point sits
+         on an edge. Plot box L=56 R=544 T=16 B=260 (plotW=488, plotH=244):
+           cx = 56  + (x − xlo)/(xhi − xlo) × 488
+           cy = 260 − (y − ylo)/(yhi − ylo) × 244
+         Draw a few .grid lines + .alab tick labels at the round ticks, the two .axis
+         lines, an x .atitle and a rotated y .atitle, then one .mk per point. NEVER
+         connect the points and NEVER add an .area — a scatter has no line, and it does
+         not use #lg. For a BUBBLE chart, vary r by a third value: r = 5 + (size−slo)/(shi−slo) × 11.
+         EXAMPLE: x-window [0,60], y-window [0,100]; point (38,70) → cx=365.1, cy=89.2. -->
+    <section class="slide">
+      <h2><i>5</i>Subsection Heading</h2>
+      <p class="lede sm" style="margin-bottom:14px;">Framing sentence interpreting the relationship.</p>
+      <svg class="scatter" viewBox="0 0 560 300" role="img" aria-label="Describe the relationship">
+        <line class="grid" x1="56" y1="199" x2="544" y2="199"></line>
+        <line class="grid" x1="56" y1="138" x2="544" y2="138"></line>
+        <line class="grid" x1="56" y1="77"  x2="544" y2="77"></line>
+        <line class="grid" x1="56" y1="16"  x2="544" y2="16"></line>
+        <line class="grid" x1="218.7" y1="16" x2="218.7" y2="260"></line>
+        <line class="grid" x1="381.3" y1="16" x2="381.3" y2="260"></line>
+        <line class="axis" x1="56" y1="16"  x2="56"  y2="260"></line>
+        <line class="axis" x1="56" y1="260" x2="544" y2="260"></line>
+        <circle class="mk" cx="121.1" cy="206.3" r="7"></circle>
+        <circle class="mk" cx="178.0" cy="186.8" r="7"></circle>
+        <circle class="mk" cx="234.9" cy="142.9" r="7"></circle>
+        <circle class="mk" cx="300.0" cy="125.8" r="7"></circle>
+        <circle class="mk" cx="365.1" cy="89.2"  r="7"></circle>
+        <circle class="mk" cx="422.0" cy="94.1"  r="7"></circle>
+        <circle class="mk" cx="478.9" cy="45.3"  r="7"></circle>
+        <text class="alab" x="48" y="20"  text-anchor="end">100</text>
+        <text class="alab" x="48" y="81"  text-anchor="end">75</text>
+        <text class="alab" x="48" y="142" text-anchor="end">50</text>
+        <text class="alab" x="48" y="203" text-anchor="end">25</text>
+        <text class="alab" x="48" y="264" text-anchor="end">0</text>
+        <text class="alab" x="56"    y="278" text-anchor="middle">0</text>
+        <text class="alab" x="218.7" y="278" text-anchor="middle">20</text>
+        <text class="alab" x="381.3" y="278" text-anchor="middle">40</text>
+        <text class="alab" x="544"   y="278" text-anchor="middle">60</text>
+        <text class="atitle" x="300" y="296" text-anchor="middle">Variable X (unit)</text>
+        <text class="atitle" transform="rotate(-90 18 138)" x="18" y="138" text-anchor="middle">Variable Y (unit)</text>
+      </svg>
+      <p class="src">Source: path/to/source.csv</p>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CONTENT: DONUT + TWO-COLUMN ░░  Donut = parts of a whole.
+         The ring has r=87, so circumference C = 2πr ≈ 547. For each segment:
+           stroke-dasharray = "<len> 547"  where  len = share × 547
+           stroke-dashoffset = -(sum of all earlier segments' len)   (first segment: 0)
+         The lens MUST sum to 547.  EXAMPLE: shares 50/112, 33/112, 29/112
+           → 244, 161, 142  (sum 547);  offsets 0, -244, -405.
+         Put the total in .donut .center. Wrap two things side-by-side in .two. -->
+    <section class="slide">
+      <h2><i>6</i>Subsection Heading</h2>
+      <p class="lede sm" style="margin-bottom:24px;">Framing sentence.</p>
+      <div class="two">
+        <div class="donut-wrap">
+          <div class="donut">
+            <svg width="210" height="210" viewBox="0 0 210 210">
+              <circle class="ring" cx="105" cy="105" r="87" stroke="#b8502f" style="--dash:244 547;--off:0"></circle>
+              <circle class="ring" cx="105" cy="105" r="87" stroke="#c98a3c" style="--dash:161 547;--off:-244"></circle>
+              <circle class="ring" cx="105" cy="105" r="87" stroke="#7a7340" style="--dash:142 547;--off:-405"></circle>
+            </svg>
+            <div class="center"><b>112</b><span>TOTAL</span></div>
+          </div>
+          <div class="legend">
+            <div><i style="background:#b8502f"></i>Segment one <b>50 <small>· 45%</small></b></div>
+            <div><i style="background:#c98a3c"></i>Segment two <b>33 <small>· 29%</small></b></div>
+            <div><i style="background:#7a7340"></i>Segment three <b>29 <small>· 26%</small></b></div>
+          </div>
+        </div>
+        <div style="align-self:center;">
+          <p class="big-quote" style="font-size:calc(26px * var(--fs-scale));">A short, pointed <em>takeaway</em> about the split.</p>
+          <p class="lede sm" style="margin-top:18px;">One sentence of supporting interpretation.</p>
+        </div>
+      </div>
+      <p class="src">Source: path/to/source.csv</p>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CONTENT: BENCHMARK BULLET ░░  Use for many metrics × {us / industry / top}.
+         Per row pick a window [lo,hi] padding the three values, then
+           pos% = (value − lo)/(hi − lo) × 100   for .mcg (us), .ind (industry), .topq (top).
+         ORIENT EVERY ROW SO "BETTER" IS RIGHTWARD: for lower-is-better metrics, invert
+         with pos% = 100 − pos% (and say so in the row's <small> + the legend).
+         .band spans industry↔top:  left = min(ind,top)%, width = |ind − top|%.
+         Echo the raw numbers in .vals as  us(bold) / industry / top. -->
+    <section class="slide">
+      <h2><i>7</i>Subsection Heading</h2>
+      <p class="lede sm" style="margin-bottom:14px;">Framing sentence.</p>
+      <div class="bullet-legend">
+        <span><span class="dotm"></span> Us</span>
+        <span><span class="linei"></span> Industry average</span>
+        <span><span class="linet"></span> Top quartile</span>
+        <span class="note">Oriented so "better" is rightward.</span>
+      </div>
+      <div class="bul"><div class="lbl">Metric one<small>unit</small></div><div class="track2"><div class="band" style="left:16.7%;width:73.3%"></div><div class="ind" style="left:16.7%"></div><div class="topq" style="left:90%"></div><div class="mcg" style="left:46.7%"></div></div><div class="vals"><b>76.2</b> / 73.5 / 80.1</div></div>
+      <div class="bul"><div class="lbl">Metric two<small>unit</small></div><div class="track2"><div class="band" style="left:10%;width:80%"></div><div class="ind" style="left:10%"></div><div class="topq" style="left:90%"></div><div class="mcg" style="left:44%"></div></div><div class="vals"><b>31.4</b> / 28.0 / 36.0</div></div>
+      <div class="bul"><div class="lbl">Metric three<small>unit · lower is better</small></div><div class="track2"><div class="band" style="left:13.3%;width:73.4%"></div><div class="ind" style="left:13.3%"></div><div class="topq" style="left:86.7%"></div><div class="mcg" style="left:36%"></div></div><div class="vals"><b>14.8</b> / 16.5 / 11.0</div></div>
+      <p class="src">Source: path/to/source.csv</p>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CONCLUSION CHAPTER DIVIDER ░░ the second `##` section opens its own Part.
+         A Conclusion is THREE separate slides, NEVER merged: THIS divider, then the
+         Summary slide, then the Key Takeaways list (all three are below, in order).
+         The divider stays near-empty — the wrap-up paragraph goes on the Summary
+         slide, not here. See ../SKILL.md → Page-splitting rules. -->
+    <section class="slide chapter">
+      <div class="watermark">II</div>
+      <div class="cover">
+        <p class="kicker">Part II</p>
+        <h1>Conclusion</h1>
+        <p class="lede">One line previewing the wrap-up.</p>
+      </div>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CLOSING: SUMMARY ░░ the Conclusion's wrap-up paragraph as a short
+         .big-quote (<h2>Summary</h2> + the paragraph). NEVER fold this onto the
+         divider above or the takeaways below — that is how the wrap-up gets dropped. -->
+    <section class="slide">
+      <h2><i>8</i>Summary</h2>
+      <p class="big-quote summary-body">The Conclusion's wrap-up paragraph, copied verbatim, framing what the deck <em>established</em> — kept short.</p>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CLOSING: KEY TAKEAWAYS ░░ its own slide — just the takeaways list,
+         immediately after the Summary above. -->
+    <section class="slide">
+      <h2><i>9</i>Key Takeaways</h2>
+      <ul class="takeaways">
+        <li><b>Lead phrase</b> — the rest of the takeaway in plain language.</li>
+        <li><b>Lead phrase</b> — the rest of the takeaway in plain language.</li>
+        <li><b>Lead phrase</b> — the rest of the takeaway in plain language.</li>
+      </ul>
+      <div class="pageno"></div>
+    </section>
+
+    <!-- ░░ CLOSING: ANTICIPATED Q&A ░░ one .item per question. -->
+    <section class="slide">
+      <h2><i>10</i>Anticipated Q&amp;A</h2>
+      <div class="qa">
+        <div class="item">
+          <p class="q">The anticipated question, verbatim from the report?</p>
+          <p class="a">The prepared answer.</p>
+        </div>
+        <div class="item">
+          <p class="q">Another anticipated question?</p>
+          <p class="a">The prepared answer.</p>
+        </div>
+      </div>
+      <div class="pageno"></div>
+    </section>
+
+  </main>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const links  = document.querySelectorAll('#navlist a');
+  let current = 0;
+
+  // auto page numbers: NN / total
+  slides.forEach((s,i)=>{
+    const p = s.querySelector('.pageno');
+    if(p) p.textContent = String(i+1).padStart(2,'0') + ' / ' + String(slides.length).padStart(2,'0');
+  });
+
+  function go(i){
+    if(i < 0 || i >= slides.length) return;
+    slides[current].classList.remove('show');
+    links[current].classList.remove('active');
+    current = i;
+    slides[current].classList.add('show');
+    links[current].classList.add('active');
+    links[current].scrollIntoView({block:'nearest'});
+    document.getElementById('stage').scrollTop = 0; // reset to top on switch
+  }
+
+  links.forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      go(parseInt(a.dataset.i,10));
+    });
+  });
+
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'ArrowRight' || e.key === 'PageDown') go(current+1);
+    if(e.key === 'ArrowLeft'  || e.key === 'PageUp')   go(current-1);
+  });
+</script>
+</body>
+</html>

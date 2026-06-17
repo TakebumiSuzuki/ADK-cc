@@ -1,0 +1,245 @@
+---
+title: "Q2 2026 Sales Report"
+author: "Sarah Chen, Head of Revenue"
+date: "2026-07-15"
+
+slides:
+  - title: "Q2 2026 Sales Report"
+    body: |
+      Sarah Chen, Head of Revenue
+      Executive Leadership Team
+      2026-07-15
+    suggested_layout: "Title Slide: Large centered title, with author, audience, and date in smaller text below"
+    speaker_notes: |
+      Open with a brief framing: this is the Q2 readout, with implications for the H2 plan.
+      Total runtime is 25 minutes including Q&A. Flag that the deck closes with anticipated
+      questions and the team is ready to go deeper on any of them.
+
+  - title: "Agenda"
+    body: |
+      1. Headline results
+      2. Segment performance
+      3. Wins and challenges
+      4. The Q2 team
+      5. Conclusion and Q&A
+    suggested_layout: "Bullet list: 5 numbered items stacked vertically in a larger font"
+    speaker_notes: |
+      Five sections; the heaviest content is in segment performance and wins/challenges.
+      Reserve roughly 8 minutes for Q&A.
+
+  - title: "Headline Results"
+    body: ""
+    suggested_layout: "Section Divider: Large centered title only"
+
+  - title: "Headline Numbers"
+    body: |
+      - Revenue: **$187M** (+24% YoY, +11% QoQ) — record quarter
+      - Net new ARR: **$42M** against a $35M target — largest beat in eight quarters
+      - Three eight-figure enterprise deals signed in June
+      - Growing roughly 2x the rate of our nearest competitor
+    suggested_layout: "Bullet list: 4 items stacked vertically in a larger font, with the leading metric in each bullet emphasized"
+    speaker_notes: |
+      Anchor the audience on the four headline facts before going into charts.
+      The competitor comparison is from third-party market intel, not internal data — flag
+      the source if asked.
+    prose_sources:
+      - claim: "growing roughly 2x the rate of our nearest competitor"
+        source: "./data/market_intel.csv"
+
+  - title: "Quarterly Revenue Trend"
+    body: |
+      Sixth consecutive quarter of double-digit YoY growth. Q2 reached $187M — a record high,
+      with both 2026 quarters running well ahead of 2025 (+18% and +24% YoY).
+
+      {{revenue_trend}}
+    suggested_layout: "One-line comment on top, a large bar chart centered below"
+    data:
+      revenue_trend:
+        type: bar_chart
+        source: "./data/q2_2026_financials.xlsx, sheet: Revenue_Trend"
+        x_axis: "Quarter"
+        y_axis: "Revenue ($M)"
+        categories: ["Q1", "Q2"]
+        series:
+          - name: "2025"
+            values: [142, 151]
+          - name: "2026"
+            values: [168, 187]
+    speaker_notes: |
+      The chart compares Q1–Q2, where both years have actuals; the H2 2026 forecast lives in
+      the appendix rather than on this chart.
+      Compare slopes, not just endpoints: 2026 widens its YoY lead from +18% in Q1 to +24% in
+      Q2, which is what gives us confidence in the H2 plan.
+
+  - title: "Regional Performance"
+    body: |
+      All three regions grew, but the shape diverged. North America accelerated through the
+      quarter, EMEA stayed roughly flat, and APAC posted its strongest June on record after
+      a slow April.
+
+      {{regional_monthly}}
+    suggested_layout: "One-line comment on top, a large line chart centered below"
+    data:
+      regional_monthly:
+        type: line_chart
+        source: "./data/q2_2026_financials.xlsx, sheet: Regional_Monthly"
+        x_axis: "Month"
+        y_axis: "Revenue ($M)"
+        categories: ["April", "May", "June"]
+        series:
+          - name: "North America"
+            values: [33, 36, 38]
+          - name: "EMEA"
+            values: [17, 17, 18]
+          - name: "APAC"
+            values: [7, 9, 12]
+    speaker_notes: |
+      North America acceleration is concentrated in two named accounts that expanded mid-quarter;
+      without them the line would still be up-and-to-the-right but more gently.
+      APAC's June print is the first full month of the new Singapore team — expect compounding
+      ramp through Q3.
+
+  - title: "Segment Performance"
+    body: ""
+    suggested_layout: "Section Divider: Large centered title only"
+
+  - title: "Segment Breakdown"
+    body: |
+      Enterprise is now ~60% of revenue (was 54% in Q1). Mid-market grew 18% YoY on a stronger
+      PLG funnel. SMB declined 4% by design, consistent with the FY26 plan.
+
+      {{segment_table}}
+    suggested_layout: "Table placed large in the center of the slide"
+    data:
+      segment_table:
+        type: table
+        source: "./data/q2_segment_breakdown.csv"
+        headers: ["Segment", "Customers", "Revenue ($M)", "YoY Growth"]
+        rows:
+          - ["Enterprise", 58, 112, "+34%"]
+          - ["Mid-market", 195, 54, "+18%"]
+          - ["SMB", 640, 21, "-4%"]
+    speaker_notes: |
+      The SMB decline is the line most likely to draw questions. Be ready to point to the April
+      board deck where the channel reprioritization was approved.
+      Net retention follows segment, so the Enterprise lean is materially derisking the FY plan.
+    prose_sources:
+      - claim: "SMB decline is consistent with the FY26 plan reviewed at the April board meeting"
+        source: "./decks/april_board.pptx, slide: 12"
+
+  - title: "Revenue Mix by Segment"
+    body: |
+      Enterprise now drives the clear majority of revenue — roughly 60% of the $187M total —
+      with mid-market a healthy second and SMB a deliberately thin slice.
+
+      {{revenue_mix}}
+    suggested_layout: "One-line comment on top, a large pie chart centered below"
+    data:
+      revenue_mix:
+        type: pie_chart
+        source: "./data/q2_segment_breakdown.csv"
+        categories: ["Enterprise", "Mid-market", "SMB"]
+        series:
+          - name: "Revenue ($M)"
+            values: [112, 54, 21]
+    speaker_notes: |
+      This is the same revenue split as the table on the previous slide, shown as a share of the
+      whole rather than as absolute numbers. The story is the Enterprise lean — ~60% and rising —
+      which is what materially derisks net retention heading into H2.
+
+  - title: "Deal Size Distribution"
+    body: |
+      47 new-logo deals in Q2 with a clear bimodal shape — a healthy mid-market cluster around
+      $25–50K and a thickening tail above $250K. Three deals exceeded $1M.
+
+      {{deal_size_histogram}}
+    suggested_layout: "One-line comment on top, a large histogram centered below"
+    data:
+      deal_size_histogram:
+        type: histogram
+        source: "./data/q2_new_logos.csv"
+        x_axis: "Deal size band"
+        y_axis: "Number of deals"
+        bins: ["$0-25K", "$25-50K", "$50-100K", "$100-250K", "$250K+"]
+        frequencies: [6, 14, 11, 8, 8]
+    speaker_notes: |
+      The most important change in this chart is the thickening right tail — a year ago, the
+      $250K+ band was a single deal. Median ACV moved up 22% QoQ to $61K.
+    prose_sources:
+      - claim: "median ACV moved up 22% QoQ to $61K"
+        source: "./reports/fy26_pipeline_analysis.pdf, page: 14"
+
+  - title: "Wins and Challenges"
+    body: |
+      Several breakthrough wins, but also friction. The shared root cause is capacity — speed at
+      the top of funnel is outpacing onboarding and territory coverage.
+
+      {{wins_challenges}}
+    suggested_layout: "2-column: Wins on the left, Challenges on the right"
+    data:
+      wins_challenges:
+        type: table
+        source: "./data/q2_qbr_summary.xlsx, sheet: Wins_Challenges"
+        headers: ["Wins", "Challenges"]
+        rows:
+          - ["Three eight-figure enterprise deals closed in June", "Onboarding lead time grew from 14 to 21 days"]
+          - ["APAC region grew 73% QoQ", "EMEA pipeline coverage fell to 2.4x (target: 3.0x)"]
+          - ["ARR per rep climbed to $1.6M — a company record", "Two senior AEs departed in May; backfills not ramped"]
+          - ["PLG-sourced pipeline doubled vs Q1", "Renewal team capacity flagged by CSM lead in June"]
+    speaker_notes: |
+      None of the challenges is independently alarming, but they share a common root: capacity.
+      The H2 plan addresses each with a specific investment sized to the gap, not the symptom.
+
+  - title: "The Q2 Team"
+    body: |
+      Revenue org grew to 142 people in Q2, including two new regional VPs and a refreshed
+      enablement team. Photo from the June kickoff in Lisbon.
+
+      {{team_photo}}
+    suggested_layout: "Large image centered, with a comment on top"
+    data:
+      team_photo:
+        type: image
+        path: "./images/q2_team_lisbon.jpg"
+        caption: "Q2 2026 revenue org all-hands at the June kickoff in Lisbon"
+    speaker_notes: |
+      The hiring slowdown signaled in March has fully reversed. We are now constrained by ramp
+      time, not headcount approval.
+
+  - title: "Conclusion"
+    body: ""
+    suggested_layout: "Section Divider: Large centered title only"
+
+  - title: "Key Takeaways"
+    body: |
+      - Revenue $187M (+24% YoY); ARR $42M, $7M ahead of target
+      - Enterprise mix at 60%; mid-market accelerating; SMB intentionally trimmed
+      - North America strongest; APAC inflecting; EMEA needs pipeline attention
+      - Capacity — not demand — is the binding H2 constraint
+    suggested_layout: "Bullet list: 4 items stacked vertically in a larger font"
+    speaker_notes: |
+      End on the capacity-not-demand framing. It is the bridge to the H2 investment ask, which
+      is the next deck on the agenda.
+
+  - title: "Thank you"
+    body: |
+      Q&A
+    suggested_layout: "Title Slide: Large centered 'Thank you' with 'Q&A' in smaller text below"
+    speaker_notes: |
+      Anticipated questions:
+
+      1. Is the SMB decline a leading indicator of anything broader?
+         No — it was a deliberate channel reprioritization signed off in the April plan, and the
+         customers we lost there were not predictive of mid-market churn.
+
+      2. Why is EMEA pipeline coverage below target?
+         Two AE departures in May plus a slower-than-expected ramp of the new regional VP.
+         Backfills are in flight; we expect coverage to recover by end of Q3.
+
+      3. What is the confidence on the H2 forecast given Q2's beat?
+         High. The beat was concentrated in multi-year enterprise deals that derisk H2 ARR,
+         not pull-forward of H2 pipeline.
+
+      4. Are we comfortable with the onboarding lead-time increase?
+         Not at 21 days. The H2 plan funds two implementation engineer hires and a CS
+         automation track; we expect to pull lead time back under 16 days by end of Q4.
