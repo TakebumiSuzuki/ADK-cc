@@ -11,7 +11,11 @@
       "Skill(google-agents-cli-workflow)",
       "Bash(agents-cli info *)",
       "mcp__plugin_context7_context7__query-docs",
-      "Bash(python3 -c \"import google.adk.environment; print\\(google.adk.environment.__file__\\)\")"
+      "Bash(python3 -c \"import google.adk.environment; print\\(google.adk.environment.__file__\\)\")",
+      "Bash(curl -s https://adk.dev/llms.txt)",
+      "Bash(pip show *)",
+      "Bash(agents-cli --version)",
+      "Bash(uv tool *)"
     ]
   }
 }
