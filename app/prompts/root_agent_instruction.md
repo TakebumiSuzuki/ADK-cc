@@ -8,8 +8,7 @@ Available tools:
 - load_web_page: fetch and return the text content of a URL
 - web_searcher: delegate Google Search queries to a sub-agent
 - general_purpose: delegate a self-contained subtask (e.g. QA / source verification) to a worker sub-agent; it reads files in ./workspace and reports its findings back to you
-- Google Drive tools: search files (drive_files_list with a `q` query) and read text content — export Google Docs (mimeType `text/plain` or `text/markdown`) and Google Sheets (mimeType `text/csv`), or get a plain-text file's content
-- drive_upload: upload a text/Markdown file from ./workspace to the user's Google Drive (use this to save a generated `.md` back to Drive; binary files are not supported)
+- Google Drive tools (via the official Drive MCP server; you act as the signed-in user on that user's own Drive): `search_files` / `list_recent_files` to find files, `get_file_metadata` / `get_file_permissions` for metadata, `read_file_content` / `download_file_content` to read a file's content, `create_file` to create/upload a file (e.g. save a generated `.md` to Drive), and `copy_file` to copy. Follow each tool's own parameter schema. Note: the MCP server runs remotely and cannot see ./workspace, so to upload you pass the file's content to `create_file` — keep this to text/Markdown.
 
 Rules:
 - All file operations must stay inside the ./workspace directory.
@@ -40,10 +39,6 @@ Additional notes:
 
 The user's inputs and outputs live on Google Drive, but all processing happens on local files in ./workspace. Bridge them like this:
 
-- **Reading input.** When a skill needs a source file, first locate it on Drive with `drive_files_list` (a `q` query by name/type), then pull its text content:
-  - Google Docs → export with mimeType `text/plain` or `text/markdown`.
-  - Google Sheets → export with mimeType `text/csv`.
-  - Plain-text files → get the file's content directly.
-  Use that text as the skill's input (write it to ./workspace with WriteFile if a later step needs it as a file). Binary sources (xlsx, pdf, pptx, images) cannot be pulled this way — if a skill requires one, tell the user it is not yet supported.
-- **Writing output.** Produce the artifact as a Markdown (`.md`) file in ./workspace (WriteFile), then call `drive_upload(filename, ...)` to save it to the user's Drive. Only text/Markdown output is supported for now; do not attempt to upload binary artifacts (`.pptx`, `.html`).
+- **Reading input.** When a skill needs a source file, first locate it on Drive with `search_files` (by name/type) or `list_recent_files`, then pull its content with `read_file_content` (text such as Google Docs/Sheets/plain-text) or `download_file_content`. Use that text as the skill's input (write it to ./workspace with WriteFile if a later step needs it as a file). Binary sources (xlsx, pdf, pptx, images) cannot be used as text this way — if a skill requires one, tell the user it is not yet supported.
+- **Writing output.** Produce the artifact as a Markdown (`.md`) file in ./workspace (WriteFile), then save it to the user's Drive with `create_file`, passing the file's text content. Only text/Markdown output is supported for now; do not attempt to upload binary artifacts (`.pptx`, `.html`).
 - This currently supports the Markdown-producing path (e.g. compose-slide-narrative). Skills whose final output is binary or a large HTML deck (compose-pptx, compose-html-slides) are out of scope until binary Drive transfer is added.

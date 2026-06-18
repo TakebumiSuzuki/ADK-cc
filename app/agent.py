@@ -13,20 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mimetypes
 import os
 import pathlib
 
 from google.adk.agents import Agent
+from google.adk.agents.readonly_context import ReadonlyContext
 from google.adk.apps import App
 from google.adk.environment import LocalEnvironment
 from google.adk.models import Gemini
 from google.adk.skills import load_skill_from_dir
-from google.adk.tools import FunctionTool, google_search
+from google.adk.tools import google_search
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.environment import EnvironmentToolset
-from google.adk.tools.google_api_tool import GoogleApiToolset
 from google.adk.tools.load_web_page import load_web_page
+from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
 from google.adk.tools.skill_toolset import SkillToolset
 from google.genai import types
 
@@ -75,91 +76,63 @@ general_agent = Agent(
     ],
 )
 
-# Google Drive: ファイルの検索・読み書き・共有を OAuth（ユーザー同意）で動的にアクセスする。
-# files.list で検索、get/export で取得、create/update でアップロード・更新、copy/delete も可能。
-# 認証情報は .env から読む（リポジトリに秘密情報を書かない）。
-# 注意: GoogleApiToolset は生成時に Drive API 仕様を取得するため Application Default
-# Credentials を必要とする。ローカルで playground / import する前に
-# `gcloud auth application-default login` を実行しておくこと。
-drive_toolset = GoogleApiToolset(
-    api_name="drive",
-    api_version="v3",
-    client_id=os.environ.get("GOOGLE_OAUTH_CLIENT_ID"),
-    client_secret=os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET"),
-    # 操作を絞りたい場合は tool_filter を指定（例: 読み書き＋検索のみ）:
-    # tool_filter=[
-    #     "drive_files_list", "drive_files_get", "drive_files_export",
-    #     "drive_files_create", "drive_files_update", "drive_files_copy",
-    #     "drive_files_delete",
-    # ],
+# === Google Drive (公式リモート MCP サーバー) ===
+# Drive へのアクセスは Google 公式のリモート MCP サーバー経由で行う。
+#   エンドポイント: https://drivemcp.googleapis.com/mcp/v1
+#   公開ツール: search_files / list_recent_files / get_file_metadata /
+#     get_file_permissions / read_file_content / download_file_content /
+#     create_file / copy_file（create_file で本文アップロードが可能）。
+# 旧構成（GoogleApiToolset は本文アップロード不可 ＋ 自作 drive_upload の二本立て）を廃し、
+# ユーザー OAuth の 1 系統に統一した。
+#
+# 認可フロー: Gemini Enterprise が各ユーザーの OAuth 同意（scope: drive.readonly +
+# drive.file）を取得し、アクセストークンをセッション state に注入する。header_provider が
+# そのトークンを取り出し、MCP 呼び出しの Authorization ヘッダ（Bearer）に載せることで、
+# 「話しかけている本人」として Drive を操作する（各ユーザーは自分の Drive のみ）。
+#
+# _DRIVE_AUTH_ID は Gemini Enterprise 側の authorizationId と一致させること
+# （注入されるトークンの state キーの接頭辞になる）。URL/ID は .env で上書き可能。
+_DRIVE_AUTH_ID = os.environ.get("DRIVE_AUTH_ID", "drive-auth")
+_DRIVE_MCP_URL = os.environ.get(
+    "DRIVE_MCP_URL", "https://drivemcp.googleapis.com/mcp/v1"
 )
 
-# drive_upload: ./workspace 内のテキスト/Markdown ファイルを、開発者本人の Google Drive に
-# アップロードする。drive_toolset（自動生成ツール）は本文（メディア）を載せられないため、
-# 書き出しはこの専用 FunctionTool が担う。バイト列は LLM コンテキストを経由しない。
-# 認証は ADC（Application Default Credentials）。事前に下記を実行しておくこと:
-#   gcloud auth application-default login \
-#     --scopes=https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/drive.file
-_DRIVE_UPLOAD_SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 
+def _get_drive_access_token(ctx: ReadonlyContext) -> str:
+    """Gemini Enterprise が state に注入した、現在のユーザーのアクセストークンを返す。
 
-def drive_upload(filename: str, drive_name: str = "", folder_id: str = "") -> dict:
-    """Upload a text/Markdown file from ./workspace to the user's Google Drive.
-
-    Use this to save a generated artifact (e.g. a narrative `.md`) back to Drive.
-    The file must already exist inside ./workspace (write it with WriteFile first).
-    Only text-based files are supported; binary uploads are not handled here.
-
-    Args:
-        filename: Path of the file to upload, relative to ./workspace
-            (e.g. "narrative.md"). Must stay inside ./workspace.
-        drive_name: Optional name for the file on Drive. Defaults to the
-            source file's name.
-        folder_id: Optional Drive folder ID to upload into. Defaults to the
-            user's My Drive root.
-
-    Returns:
-        On success: {"id", "name", "webViewLink"} of the created Drive file.
-        On failure: {"error", "error_code"}.
+    キー名は authorizationId（_DRIVE_AUTH_ID）から派生する（例: "drive-auth_<digits>"）。
+    トークン未注入の環境（ローカル開発など）では空文字を返す（呼び出しは認可エラーになる）。
+    注意: 実際の state キー名は実機（Gemini Enterprise 上）で確定すること（移行計画 §5 参照）。
     """
-    workspace = pathlib.Path("./workspace").resolve()
-    src = (workspace / filename).resolve()
-    if not src.is_relative_to(workspace):
-        return {
-            "error": "filename must stay inside ./workspace.",
-            "error_code": "OUTSIDE_WORKSPACE",
-        }
-    if not src.is_file():
-        return {"error": f"File not found: {filename}", "error_code": "NOT_FOUND"}
-
-    try:
-        import google.auth
-        from googleapiclient.discovery import build
-        from googleapiclient.http import MediaFileUpload
-
-        creds, _ = google.auth.default(scopes=_DRIVE_UPLOAD_SCOPES)
-        service = build("drive", "v3", credentials=creds)
-
-        mime_type = mimetypes.guess_type(src.name)[0] or "text/markdown"
-        body = {"name": drive_name or src.name}
-        if folder_id:
-            body["parents"] = [folder_id]
-        media = MediaFileUpload(str(src), mimetype=mime_type, resumable=False)
-        created = (
-            service.files()
-            .create(body=body, media_body=media, fields="id, name, webViewLink")
-            .execute()
-        )
-        return {
-            "id": created.get("id"),
-            "name": created.get("name"),
-            "webViewLink": created.get("webViewLink"),
-        }
-    except Exception as e:  # noqa: BLE001
-        return {"error": f"{type(e).__name__}: {e}", "error_code": "UPLOAD_FAILED"}
+    state = ctx.state
+    items = (
+        state.to_dict().items() if hasattr(state, "to_dict") else dict(state).items()
+    )
+    for key, value in items:
+        if key.startswith(f"{_DRIVE_AUTH_ID}_"):
+            return value or ""
+    return ""
 
 
-drive_upload_tool = FunctionTool(func=drive_upload)
+def _drive_auth_header_provider(ctx: ReadonlyContext) -> dict[str, str]:
+    """MCP 呼び出しごとに、現在のユーザーのトークンを Bearer ヘッダとして付与する。
+
+    トークンが無い場合は Authorization ヘッダを付けない（空の Bearer を送らない）。
+    """
+    token = _get_drive_access_token(ctx)
+    return {"Authorization": f"Bearer {token}"} if token else {}
+
+
+drive_mcp_toolset = McpToolset(
+    connection_params=StreamableHTTPConnectionParams(url=_DRIVE_MCP_URL),
+    header_provider=_drive_auth_header_provider,
+    # 操作を絞りたい場合は tool_filter を指定（例: 検索・読み取り・作成のみ）:
+    # tool_filter=[
+    #     "search_files", "list_recent_files", "get_file_metadata",
+    #     "read_file_content", "download_file_content", "create_file",
+    # ],
+)
 
 # ./skills/<skill-name>/ 配下を自動スキャンし、SKILL.md を持つディレクトリを
 # ADK スキルとして読み込む。スキルは後から app/skills/ にコピペするだけで、
@@ -193,8 +166,7 @@ root_agent = Agent(
         load_web_page,
         AgentTool(agent=search_agent),
         AgentTool(agent=general_agent),
-        drive_toolset,
-        drive_upload_tool,
+        drive_mcp_toolset,
         skill_toolset,
     ],
 )
