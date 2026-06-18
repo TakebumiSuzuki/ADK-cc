@@ -203,3 +203,111 @@ drive_mcp = McpToolset(
 - ADK×OAuth×Gemini Enterprise: https://fmind.medium.com/powering-up-your-agent-in-production-with-adk-oauth-and-gemini-enterprise-a52b0716fcba
 - Codelab (GE×Workspace): https://codelabs.developers.google.com/ge-gws-agents
 - McpToolset 実体: ローカル `google/adk/tools/mcp_tool/mcp_toolset.py`（v2.0.0b1）
+- agents-cli publish: ローカル skill `.claude/skills/google-agents-cli-publish/SKILL.md`
+
+---
+
+## 10. Phase 4 ハンドオフ手順（会社マシン / Antigravity CLI 向け）
+
+> **引き継ぎ状況**: コード移行（Phase 1〜2）は完了し、ブランチ `feature/mcp-server`
+> にコミット済み（commit `5de4858`）。会社マシン（ADC が通る環境）は **Phase 0 準備 →
+> 10-1 deploy** から再開する。ローカル（この dev コンテナ）では GE 不在のため Drive の
+> 実機検証は不可。実検証はすべて GE 上（10-4）で行う。
+>
+> **最重要の落とし穴 — AUTH_ID を 3 箇所で一致させる**:
+> `authorizations` の `authorizationId` ＝ `publish` の `--authorization-id` 末尾
+> ＝ `app/agent.py` の `_DRIVE_AUTH_ID`（デフォルト `drive-auth`）。
+> GE が注入するトークンの state キーはこの ID から派生するため、ズレると
+> `header_provider` がトークンを拾えない。全部 `drive-auth` で揃えるのが無難
+> （変える場合は `DRIVE_AUTH_ID` env で agent 側も合わせる）。
+
+### 10-0. 前提（一度だけ）
+- `gcloud auth login` ＋ `gcloud auth application-default login`（ADC）。
+- GCP プロジェクトで **Drive API ＋ Drive MCP API を有効化**。
+- **OAuth 2.0 ウェブクライアント**作成。リダイレクト URI に以下 2 つを登録:
+  - `https://vertexaisearch.cloud.google.com/oauth-redirect`
+  - `https://vertexaisearch.cloud.google.com/static/oauth/oauth.html`
+  - （dev 用／本番用で 2 クライアント推奨）
+- **Gemini Enterprise アプリ**を作成（Console → Gemini Enterprise → Apps）。フルリソース名
+  `projects/PROJECT_NUMBER/locations/global/collections/default_collection/engines/APP_ID` を控える。
+- 権限: 実行アカウントに **Discovery Engine Editor**（GE プロジェクト）。
+
+### 10-1. デプロイ（Agent Engine）
+```bash
+uv sync
+agents-cli deploy   # 要承認。成功で deployment_metadata.json に remote_agent_runtime_id が入る
+```
+- SDK: `google-cloud-aiplatform>=1.130.0` 済（"Session not found" 回避ラインを満たす）。
+
+### 10-2. OAuth 認可リソースを作成（publish では作られない・別途必須）
+> `agents-cli publish` は認可リソースを**作らず参照するだけ**。先にここで作る。
+> scope は **drive.readonly + drive.file**。`authorizationId` は `drive-auth` で固定。
+> ※ エンドポイントの host/location（`global` など）と各フィールドは
+> Gemini Enterprise の公式手順（§9 出典）で最終確認すること。
+```bash
+PROJECT_NUMBER=...                       # GCP プロジェクト番号
+LOCATION=global                          # GE のロケーションに合わせる
+AUTH_ID=drive-auth                       # ← agent.py の _DRIVE_AUTH_ID と一致
+CLIENT_ID=...; CLIENT_SECRET=...         # 10-0 で作った OAuth クライアント
+
+curl -X POST \
+  -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+  -H "Content-Type: application/json" \
+  "https://${LOCATION}-discoveryengine.googleapis.com/v1alpha/projects/${PROJECT_NUMBER}/locations/${LOCATION}/authorizations?authorizationId=${AUTH_ID}" \
+  -d '{
+    "serverSideOauth2": {
+      "clientId": "'"${CLIENT_ID}"'",
+      "clientSecret": "'"${CLIENT_SECRET}"'",
+      "authorizationUri": "https://accounts.google.com/o/oauth2/v2/auth?client_id='"${CLIENT_ID}"'&redirect_uri=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Fstatic%2Foauth%2Foauth.html&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.readonly%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.file&access_type=offline&prompt=consent",
+      "tokenUri": "https://oauth2.googleapis.com/token"
+    }
+  }'
+```
+
+### 10-3. エージェントを GE に登録（認可を紐付け）
+> `deployment_metadata.json` があれば `--agent-runtime-id` は自動検出される。
+```bash
+agents-cli publish gemini-enterprise \
+  --gemini-enterprise-app-id projects/PROJECT_NUMBER/locations/global/collections/default_collection/engines/APP_ID \
+  --display-name "Mini Claude Code" \
+  --description "Autonomous coding agent with Google Drive access" \
+  --authorization-id projects/PROJECT_NUMBER/locations/global/authorizations/drive-auth
+```
+- 非対話（CI/CD）前提。対話で進めたい場合は `--interactive` / `-i`。
+- env での代替: `GEMINI_ENTERPRISE_APP_ID` / `GEMINI_AUTHORIZATION_ID` 等。
+- 「Agent already registered」は更新扱い＝正常。HTTP 403 は Discovery Engine 権限を確認。
+
+### 10-4. 動作確認（本命の認可フロー）
+GE のチャット UI を開き、テストユーザーで:
+1. 初回に **「Authorize」**→ Drive 同意（drive.readonly + drive.file）。
+2. 「自分の Drive のファイルを検索して」→ `search_files` / `list_recent_files`。
+3. ファイル内容を読む → `read_file_content`。
+4. 「この内容を `.md` で Drive に保存して」→ `create_file`（**アップロード**）。
+5. 別ユーザーでも自分の Drive のみ操作できること（他人の Drive に触れない）。
+
+### 10-5. 「要検証項目（§5）」の確定とコード微修正
+- **state のトークンキー名を実測**（`drive-auth_<digits>` か等）→ `app/agent.py` の
+  `_get_drive_access_token` のマッチ条件（`startswith(f"{_DRIVE_AUTH_ID}_")`）を最終化。
+- トランスポートが `StreamableHTTPConnectionParams` で疎通するか（不可なら `SseConnectionParams`）。
+- GE 注入トークン（Bearer）だけで `drivemcp.googleapis.com` が受理するか。
+- `create_file` の引数（content の渡し方・サイズ上限）。
+- 確定後、必要なら `app/agent.py` を微修正して再デプロイ → 再 publish。
+
+---
+
+## 11. 次アクションのヒント（ハンドオフ・チェックリスト）
+
+- [ ] **Phase 0 準備**（API 有効化 / OAuth クライアント / GE アプリ / 権限）
+- [ ] **10-1 `agents-cli deploy`**（→ `deployment_metadata.json` 更新を確認）
+- [ ] **10-2 認可リソース作成**（`AUTH_ID=drive-auth`、scope=drive.readonly+drive.file）
+- [ ] **10-3 `agents-cli publish gemini-enterprise`**（`--authorization-id` で 10-2 を紐付け）
+- [ ] **10-4 実機テスト**（Authorize → search/read/**create_file** → 別ユーザー）
+- [ ] **10-5 要検証項目を確定**し、必要なら `_get_drive_access_token` を微修正・再デプロイ
+- [ ] **lint/pytest 整備**: `agents-cli scaffold upgrade` で 0.5.0 の `lint`/`test` extra を整える（別タスク）
+- [ ] **Phase 5**: 10 ユーザー検証 → README/CLAUDE.md 更新 → `main` へ PR
+
+### 引き継ぎメモ
+- 既に済み: ライブラリ更新（adk 2.2.0[mcp] / agents-cli 0.5.0）、コード移行（Drive MCP 化）、
+  プロンプト更新、`google-api-python-client` 撤去。`app.agent` は ADC 無しで import 可。
+- ローカルで未了: `agents-cli lint`（extra 未整備）、Drive 実機テスト（GE 必須）。
+- ロールバック: 本ブランチ破棄で `main`（旧 GoogleApiToolset 構成）へ戻せる。
